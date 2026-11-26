@@ -17,6 +17,34 @@ The goal is not to compare Python frameworks. It is to understand **why a backen
 | Concurrency limits | Can limiting concurrency improve reliability even if latency increases? |
 | Profiling & observability | How can asyncio debug logs and cProfile help identify bottlenecks? |
 
+## Benchmark visualizations
+
+These charts are generated from the committed k6 result summaries. Each comparison uses the **same workload within that experiment**. Test durations are calculated from the number of requests divided by the reported request rate; values are rounded for display.
+
+### 1. I/O and thread pool limits — 100 concurrent requests
+
+![Async I/O vs sync I/O with 40 and 20 AnyIO tokens](docs/charts/01-io-thread-limiter.svg)
+
+Async I/O keeps request latency close to the one-second simulated wait. Sync endpoints start queuing when the thread-offload limiter is saturated. [Source JSON files](results/experiment_01/).
+
+### 2. CPU workload — 1 worker vs. 4 workers
+
+![CPU workload scaling with Uvicorn workers](docs/charts/02-cpu-workers.svg)
+
+In this CPU-bound test, separate worker processes reduced total completion time from about 4.99s to 1.61s. [Source JSON files](results/experiment_02/).
+
+### 3. Database connection pool — 5 vs. 10 connections
+
+![Database connection pool comparison](docs/charts/03-database-pool.svg)
+
+A larger pool reduced waiting in this ten-request test. It is not a recommendation to increase connection pools without considering database capacity. [Source JSON files](results/experiment_03/).
+
+### 4. Concurrency limits — success vs. failure
+
+![Bounded and unbounded downstream success rates](docs/charts/04-concurrency-reliability.svg)
+
+The unbounded test returned 40 fast HTTP 503 errors. The semaphore-limited test took longer but completed all 50 requests successfully. [Source JSON files](results/experiment_04/).
+
 ## Key findings
 
 These are **observed results from short, local k6 tests**, not estimates of production throughput.
